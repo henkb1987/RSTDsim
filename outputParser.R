@@ -7,7 +7,7 @@ outputParser <- function(output.file){
   results <- vector("list", length(captions))
   names(results) <- rep(NA, length(results))
   for(i in 1:length(results)){
-    cat("Table",i,":",captions[i],"...\n")
+    #cat("Table",i,":",captions[i],"...\n")
     names(results)[i] <- gsub(" ","",captions[i])
     columns <- strsplit(raw.file[captions.locations[i] + 1], "\t")[[1]][-1]
     n.columns <- length(columns)
@@ -28,5 +28,20 @@ outputParser <- function(output.file){
     colnames(results[[i]]) <- columns
   }
   save(results, file=paste0(gsub(".txt","",output.file),"_results"))
+  cat("Wrote",paste0(gsub(".txt","",output.file),"_results"),"\n")
   return(T)
+}
+distill.art.usage <- function(results){
+  pop.size <- results$`averagePOPULATIONsize(MALE/FEMALE/BOTH)`
+  art <- results$`averageARTprevalence[%]`
+  hiv <- results$`averageHIVprevalence[%]`
+  art.size <- pop.size * 0
+  age.labels <- which(colnames(art)!="")
+  for(i in 1:(length(age.labels) - 1)){
+    art.size[, i] <- rowSums(hiv[2:nrow(hiv), (age.labels[i] + 1):(age.labels[i] + 15)]) * 
+      rowSums(art[2:nrow(art), (age.labels[i] + 1):(age.labels[i] + 15)]) * 
+      pop.size[,i]
+  }
+  rownames(art.size) <- 1990:2050
+  return(art.size)
 }
